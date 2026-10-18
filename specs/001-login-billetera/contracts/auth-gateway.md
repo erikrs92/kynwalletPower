@@ -32,11 +32,20 @@ export type AuthResult =
 ## Implementación de la demostración: `InMemoryAuthGateway`
 
 ```ts
-new InMemoryAuthGateway(accounts: DemoAccount[] | null, options?: { delayMs?: number })
+new InMemoryAuthGateway(store: InMemoryAccountStore, options?: { delayMs?: number })
 ```
 
 - `delayMs` vale 1000 por defecto (FR-008); las pruebas usan 0 o temporizadores falsos.
-- `accounts === null` representa configuración inválida y produce C4.
+- Desde la spec `002-registro-usuarios` el gateway lee las cuentas de un `InMemoryAccountStore`
+  compartido con el registro (ver
+  [`registration-gateway.md`](../../002-registro-usuarios/contracts/registration-gateway.md)).
+  `store.isAvailable() === false` representa configuración inválida y produce C4.
+
+Contrato adicional (spec 002):
+
+| # | Dado | Resultado |
+|---|---|---|
+| C7 | Cuenta creada con `RegistrationGateway.register` y las mismas credenciales | `success` con el `displayName` registrado |
 
 ## Configuración: `VITE_DEMO_USERS`
 

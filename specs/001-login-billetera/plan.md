@@ -47,7 +47,7 @@ archivos versionados; sin scroll horizontal desde 320px
 | I. TDD | Cada historia empieza con pruebas que fallan (dominio → caso de uso → componentes); las pruebas se mapean a los escenarios Given/When/Then | ✅ |
 | II. SOLID | Componentes con una responsabilidad; `AuthGateway` como abstracción inyectada (DIP); componentes de campo extensibles por props | ✅ |
 | III. Clean Architecture | `domain/` sin dependencias de React ni Vite; `application/` depende solo de `domain/`; `infrastructure/` y `ui/` en el exterior; regla de dependencias verificada por ESLint (`no-restricted-imports`) | ✅ |
-| IV. DRY/KISS/YAGNI | Tokens únicos; validaciones en un solo lugar; sin librerías de formularios, estado global, router ni E2E | ✅ |
+| IV. DRY/KISS/YAGNI | Tokens únicos; validaciones en un solo lugar; sin librerías de formularios, estado global ni E2E; sin router mientras exista una sola pantalla (la spec `002-registro-usuarios` incorpora un módulo de navegación propio para `/login` y `/registro`, ver su research R1) | ✅ |
 | V. Seguridad | Validación en el límite; mensaje genérico; contraseña nunca registrada ni persistida; cuentas desde `.env.local` no versionado; `secretlint` | ✅ con desviación del pedido del usuario (ver R4) |
 | VI. BRD/ARD | No existen para esta funcionalidad (supuesto de la spec) | ✅ N/A |
 | 7. Dependencias | Todas MIT/ISC/Apache/OFL con mantenimiento activo; `npm audit` y verificación de licencias en `verify` | ✅ |

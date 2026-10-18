@@ -16,7 +16,7 @@ Textos exactos en español, tal como figuran en el diseño de Figma (nodo `2:2`)
 | Enviar | `button` "Iniciar sesión" | En carga: `aria-busy=true`, deshabilitado, texto "Iniciando sesión…" |
 | Separador | texto "o continúa con" | Decorativo |
 | Google / Apple | `button` "Google", `button` "Apple" | Muestran el aviso |
-| Registro | `button` "Regístrate" precedido por "¿No tienes cuenta?" | Muestra el aviso |
+| Registro | `link` "Regístrate" precedido por "¿No tienes cuenta?" | `href="/registro"`: navega a la pantalla de registro (spec `002-registro-usuarios`); ya no muestra el aviso |
 
 **Errores por campo**: texto bajo el campo, vinculado con `aria-describedby`; el campo lleva
 `aria-invalid=true`.
