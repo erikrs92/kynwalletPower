@@ -15,3 +15,8 @@
   background: var(--neutral-50);
   color: var(--neutral-900);
 }
+
+.success {
+  background: var(--success-50);
+  color: var(--success-700);
+}

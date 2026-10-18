@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import type { Authenticate } from '@/application/authenticate';
 import { validateCredentials } from '@/domain/validation';
-import { initialLoginState, loginReducer, type Field, type FieldErrors } from './loginReducer';
+import {
+  createInitialLoginState,
+  loginReducer,
+  type Field,
+  type FieldErrors,
+} from './loginReducer';
 
-export function useLoginForm(authenticate: Authenticate) {
-  const [state, dispatch] = useReducer(loginReducer, initialLoginState);
+export function useLoginForm(authenticate: Authenticate, registeredEmail?: string) {
+  const [state, dispatch] = useReducer(loginReducer, registeredEmail, createInitialLoginState);
   const inFlight = useRef(false);
   const mounted = useRef(true);
 

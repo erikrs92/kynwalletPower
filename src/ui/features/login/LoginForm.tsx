@@ -8,19 +8,31 @@ import { Divider } from '@/ui/components/Divider/Divider';
 import { PasswordField } from '@/ui/components/PasswordField/PasswordField';
 import { SocialButton } from '@/ui/components/SocialButton/SocialButton';
 import { TextField } from '@/ui/components/TextField/TextField';
+import { Link } from '@/ui/navigation/Link';
 import { useLoginForm } from './useLoginForm';
 import { WelcomeView } from './WelcomeView';
 import styles from './LoginForm.module.css';
 
 type LoginFormProps = {
   authenticate: Authenticate;
+  /** Presente solo al llegar desde un registro exitoso (spec 002, FR-011 y FR-011a). */
+  registered?: { email: string };
+  onRegisteredDismiss?: () => void;
 };
 
-export function LoginForm({ authenticate }: LoginFormProps) {
-  const { state, change, blur, submit, logout, toggleRemember, showNotice } =
-    useLoginForm(authenticate);
+export function LoginForm({ authenticate, registered, onRegisteredDismiss }: LoginFormProps) {
+  const { state, change, blur, submit, logout, toggleRemember, showNotice } = useLoginForm(
+    authenticate,
+    registered?.email,
+  );
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
+  const startedRegistered = useRef(registered !== undefined);
+
+  // FR-011a: tras registrarse, el foco inicial va a la contraseña (solo al montar).
+  useEffect(() => {
+    if (startedRegistered.current) passwordRef.current?.focus();
+  }, []);
 
   // US2-4: tras credenciales incorrectas, el foco vuelve a la contraseña.
   useEffect(() => {
@@ -30,6 +42,11 @@ export function LoginForm({ authenticate }: LoginFormProps) {
   if (state.status === 'welcome' && state.welcomeName) {
     return <WelcomeView name={state.welcomeName} onLogout={logout} />;
   }
+
+  const handleChange = (field: 'email' | 'password', value: string) => {
+    if (state.registeredNotice) onRegisteredDismiss?.();
+    change(field, value);
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -45,7 +62,9 @@ export function LoginForm({ authenticate }: LoginFormProps) {
   return (
     <form className={styles.form} noValidate onSubmit={handleSubmit}>
       <div className={styles.heading}>
-        <h1 className={styles.title}>Bienvenido de nuevo</h1>
+        <h1 className={styles.title} tabIndex={-1}>
+          Bienvenido de nuevo
+        </h1>
         <p className={styles.subtitle}>Ingresa a tu cuenta para continuar</p>
       </div>
 
@@ -58,7 +77,7 @@ export function LoginForm({ authenticate }: LoginFormProps) {
         placeholder="tucorreo@ejemplo.com"
         value={state.values.email}
         error={state.fieldErrors.email}
-        onChange={(event) => change('email', event.target.value)}
+        onChange={(event) => handleChange('email', event.target.value)}
         onBlur={() => blur('email')}
       />
 
@@ -70,7 +89,7 @@ export function LoginForm({ authenticate }: LoginFormProps) {
         placeholder="••••••••"
         value={state.values.password}
         error={state.fieldErrors.password}
-        onChange={(event) => change('password', event.target.value)}
+        onChange={(event) => handleChange('password', event.target.value)}
         onBlur={() => blur('password')}
       />
 
@@ -80,6 +99,8 @@ export function LoginForm({ authenticate }: LoginFormProps) {
           ¿Olvidaste tu contraseña?
         </Button>
       </div>
+
+      {state.registeredNotice && <Alert tone="success">{MESSAGES.REGISTER_SUCCESS}</Alert>}
 
       {state.authError && (
         <Alert tone="error">
@@ -108,9 +129,7 @@ export function LoginForm({ authenticate }: LoginFormProps) {
 
       <p className={styles.footer}>
         ¿No tienes cuenta?
-        <Button variant="link" onClick={notAvailable}>
-          Regístrate
-        </Button>
+        <Link to="register">Regístrate</Link>
       </p>
     </form>
   );

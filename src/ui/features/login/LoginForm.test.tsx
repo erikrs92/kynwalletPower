@@ -179,7 +179,7 @@ describe('LoginForm · US3 Validar los campos antes de enviar', () => {
 });
 
 describe('LoginForm · US5 Elementos del diseño fuera de alcance', () => {
-  it.each(['¿Olvidaste tu contraseña?', 'Google', 'Apple', 'Regístrate'])(
+  it.each(['¿Olvidaste tu contraseña?', 'Google', 'Apple'])(
     'US5-1: "%s" muestra el aviso y conserva los datos',
     async (name) => {
       const { user, stub, email, password } = setup();
@@ -207,6 +207,12 @@ describe('LoginForm · US5 Elementos del diseño fuera de alcance', () => {
     setItem.mockRestore();
   });
 
+  it('FR-016 (spec 002): "Regístrate" es un enlace hacia /registro, no un aviso', () => {
+    setup();
+    expect(screen.queryByRole('button', { name: 'Regístrate' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Regístrate' })).toHaveAttribute('href', '/registro');
+  });
+
   it('FR-014: orden de tabulación según contracts/ui-login.md', async () => {
     const { user } = setup();
     const expected = [
@@ -218,7 +224,7 @@ describe('LoginForm · US5 Elementos del diseño fuera de alcance', () => {
       screen.getByRole('button', { name: 'Iniciar sesión' }),
       screen.getByRole('button', { name: 'Google' }),
       screen.getByRole('button', { name: 'Apple' }),
-      screen.getByRole('button', { name: 'Regístrate' }),
+      screen.getByRole('link', { name: 'Regístrate' }),
     ];
     for (const element of expected) {
       await user.tab();
@@ -260,5 +266,65 @@ describe('LoginForm · seguridad (FR-012)', () => {
 
     setItem.mockRestore();
     consoleSpies.forEach((spy) => spy.mockRestore());
+  });
+});
+
+describe('LoginForm · tras un registro exitoso (spec 002)', () => {
+  const REGISTERED_EMAIL = 'nueva@example.test';
+
+  function setupRegistered() {
+    const stub = createAuthStub();
+    const onRegisteredDismiss = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <LoginForm
+        authenticate={stub.authenticate}
+        registered={{ email: REGISTERED_EMAIL }}
+        onRegisteredDismiss={onRegisteredDismiss}
+      />,
+    );
+    return {
+      user,
+      onRegisteredDismiss,
+      email: screen.getByLabelText('Correo electrónico'),
+      password: screen.getByLabelText('Contraseña'),
+    };
+  }
+
+  it('US1-5: muestra el aviso de éxito y editar cualquier campo lo oculta', async () => {
+    const { user, onRegisteredDismiss, password } = setupRegistered();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Cuenta creada correctamente. Ahora puedes iniciar sesión.',
+    );
+    await user.type(password, 'a');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(onRegisteredDismiss).toHaveBeenCalled();
+  });
+
+  it('US1-8: el correo aparece rellenado, la contraseña vacía y con el foco', () => {
+    const { email, password } = setupRegistered();
+    expect(email).toHaveValue(REGISTERED_EMAIL);
+    expect(password).toHaveValue('');
+    expect(password).toHaveFocus();
+  });
+
+  it('sin la prop registered el login se comporta como antes', () => {
+    setup();
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Correo electrónico')).toHaveValue('');
+    expect(screen.getByLabelText('Contraseña')).not.toHaveFocus();
+  });
+
+  it('FR-011a: "Cerrar sesión" deja ambos campos vacíos, sin aviso y sin mover el foco', async () => {
+    const { user, password } = setupRegistered();
+    await user.type(password, TEST_ACCOUNT.password);
+    await user.click(screen.getByRole('button', { name: 'Iniciar sesión' }));
+    await screen.findByRole('heading', { name: '¡Bienvenido, Steven Luna!' });
+    await user.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
+
+    expect(screen.getByLabelText('Correo electrónico')).toHaveValue('');
+    expect(screen.getByLabelText('Contraseña')).toHaveValue('');
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Contraseña')).not.toHaveFocus();
   });
 });

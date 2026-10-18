@@ -1,3 +1,9 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .wrapper {
   display: inline-flex;
   align-items: center;
@@ -7,6 +13,7 @@
 .box {
   display: grid;
   place-content: center;
+  flex-shrink: 0;
   width: 20px;
   height: 20px;
   margin: 0;
@@ -15,6 +22,16 @@
   background: var(--neutral-0);
   appearance: none;
   cursor: pointer;
+}
+
+.invalid {
+  border-color: var(--danger-600);
+}
+
+.error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--danger-600);
 }
 
 .box::after {

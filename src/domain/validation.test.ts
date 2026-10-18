@@ -1,5 +1,21 @@
 import { MESSAGES } from './messages';
-import { normalizeEmail, validateCredentials } from './validation';
+import { normalizeEmail, validateCredentials, validateEmail, validatePassword } from './validation';
+
+describe('validateEmail y validatePassword (reutilizadas por el registro)', () => {
+  it('FR-004: validateEmail devuelve los mismos mensajes y límites que el login', () => {
+    expect(validateEmail('  ')).toBe(MESSAGES.EMAIL_REQUIRED);
+    expect(validateEmail('usuario@')).toBe(MESSAGES.EMAIL_INVALID);
+    expect(validateEmail(`${'a'.repeat(250)}@b.co`)).toBe(MESSAGES.EMAIL_INVALID);
+    expect(validateEmail('  Demo@Example.COM ')).toBeUndefined();
+  });
+
+  it('FR-005: validatePassword valida 8 a 128 caracteres sin recortar', () => {
+    expect(validatePassword('')).toBe(MESSAGES.PASSWORD_REQUIRED);
+    expect(validatePassword('1234567')).toBe(MESSAGES.PASSWORD_TOO_SHORT);
+    expect(validatePassword('x'.repeat(129))).toBe(MESSAGES.PASSWORD_TOO_LONG);
+    expect(validatePassword(' '.repeat(8))).toBeUndefined();
+  });
+});
 
 describe('normalizeEmail', () => {
   it('US1-3: recorta espacios periféricos y convierte a minúsculas', () => {

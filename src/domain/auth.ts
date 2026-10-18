@@ -1,3 +1,5 @@
+import type { RegistrationErrors } from './registration';
+
 export type LoginCredentials = {
   email: string;
   password: string;
@@ -13,3 +15,11 @@ export type DemoAccount = {
   password: string;
   displayName: string;
 };
+
+export type NewAccount = DemoAccount;
+
+export type RegisterResult =
+  | { kind: 'success' }
+  | { kind: 'invalid'; errors: RegistrationErrors }
+  | { kind: 'email-taken' }
+  | { kind: 'unavailable' };

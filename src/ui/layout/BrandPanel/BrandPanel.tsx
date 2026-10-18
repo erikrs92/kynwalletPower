@@ -1,8 +1,14 @@
+import type { ReactNode } from 'react';
 import logoMark from '@/ui/assets/logo-mark.svg';
 import styles from './BrandPanel.module.css';
 
-/** Panel de marca del diseño (Figma, nodo 2:3). */
-export function BrandPanel() {
+type BrandPanelProps = {
+  title: ReactNode;
+  description: string;
+};
+
+/** Panel de marca del diseño (Figma, nodos 2:3 y 31:2); los textos los define cada pantalla. */
+export function BrandPanel({ title, description }: BrandPanelProps) {
   return (
     <header className={styles.panel}>
       <div className={styles.logo}>
@@ -11,14 +17,8 @@ export function BrandPanel() {
       </div>
 
       <div className={styles.headline}>
-        <p className={styles.title}>
-          Tu dinero,
-          <br />
-          sin fronteras.
-        </p>
-        <p className={styles.subtitle}>
-          Envía, recibe y paga en segundos. Una billetera pensada para tu día a día.
-        </p>
+        <p className={styles.title}>{title}</p>
+        <p className={styles.subtitle}>{description}</p>
       </div>
 
       <div className={styles.card} aria-hidden="true">

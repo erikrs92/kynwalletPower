@@ -1,7 +1,11 @@
 import { TEST_ACCOUNT } from '@/test/fixtures';
+import { InMemoryAccountStore } from './InMemoryAccountStore';
 import { InMemoryAuthGateway } from './InMemoryAuthGateway';
 
-const gateway = (accounts = [TEST_ACCOUNT]) => new InMemoryAuthGateway(accounts, { delayMs: 0 });
+const store = (accounts: (typeof TEST_ACCOUNT)[] | null = [TEST_ACCOUNT]) =>
+  new InMemoryAccountStore(accounts);
+const gateway = (accounts: (typeof TEST_ACCOUNT)[] | null = [TEST_ACCOUNT]) =>
+  new InMemoryAuthGateway(store(accounts), { delayMs: 0 });
 
 describe('InMemoryAuthGateway (contracts/auth-gateway.md)', () => {
   afterEach(() => {
@@ -38,7 +42,7 @@ describe('InMemoryAuthGateway (contracts/auth-gateway.md)', () => {
   });
 
   it('C4: configuración ausente → unavailable', async () => {
-    const result = await new InMemoryAuthGateway(null, { delayMs: 0 }).authenticate({
+    const result = await gateway(null).authenticate({
       email: TEST_ACCOUNT.email,
       password: TEST_ACCOUNT.password,
     });
@@ -46,17 +50,15 @@ describe('InMemoryAuthGateway (contracts/auth-gateway.md)', () => {
   });
 
   it('C5: una excepción interna → unavailable sin rechazar la promesa', async () => {
-    const broken = [
-      {
-        get email(): string {
-          throw new Error('boom');
-        },
-        password: 'x',
-        displayName: 'x',
-      },
-    ];
+    const broken = store();
+    vi.spyOn(broken, 'findByEmail').mockImplementation(() => {
+      throw new Error('boom');
+    });
     await expect(
-      gateway(broken).authenticate({ email: 'a@b.co', password: 'whatever1' }),
+      new InMemoryAuthGateway(broken, { delayMs: 0 }).authenticate({
+        email: 'a@b.co',
+        password: 'whatever1',
+      }),
     ).resolves.toEqual({ kind: 'unavailable' });
   });
 
@@ -71,7 +73,7 @@ describe('InMemoryAuthGateway (contracts/auth-gateway.md)', () => {
   it('FR-008: espera delayMs antes de responder (1000 ms por defecto)', async () => {
     vi.useFakeTimers();
     const onResolve = vi.fn();
-    new InMemoryAuthGateway([TEST_ACCOUNT])
+    new InMemoryAuthGateway(store())
       .authenticate({ email: TEST_ACCOUNT.email, password: TEST_ACCOUNT.password })
       .then(onResolve);
     await vi.advanceTimersByTimeAsync(999);

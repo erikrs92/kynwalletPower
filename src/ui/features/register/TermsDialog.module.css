@@ -1,0 +1,39 @@
+.dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  padding: 28px 24px;
+  border: none;
+  border-radius: var(--radius-card);
+  background: var(--neutral-0);
+  color: var(--neutral-900);
+  overflow-y: auto;
+}
+
+.dialog[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dialog::backdrop {
+  background: rgba(22, 24, 44, 0.55);
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--neutral-700);
+}
+
+.body p {
+  margin: 0;
+}

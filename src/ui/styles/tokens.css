@@ -17,6 +17,8 @@
   --neutral-border: #92949c; /* 3.03:1: bordes de controles */
   --danger-600: #c62828; /* 5.62:1: mensajes de error */
   --danger-50: #fdecea;
+  --success-700: #1e6b3a; /* 6.52:1 sobre blanco y 5.81:1 sobre --success-50: aviso de éxito */
+  --success-50: #e8f5ec;
   --neutral-50: #f4f5f9;
 
   /* Valores sin variable en Figma */

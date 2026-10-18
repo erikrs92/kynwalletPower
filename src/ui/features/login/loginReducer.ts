@@ -13,6 +13,8 @@ export type LoginState = {
   welcomeName: string | null;
   rememberMe: boolean;
   notice: string | null;
+  /** Aviso de registro exitoso (spec 002, FR-011): se muestra hasta que el usuario edita un campo. */
+  registeredNotice: boolean;
 };
 
 export type LoginAction =
@@ -33,7 +35,18 @@ export const initialLoginState: LoginState = {
   welcomeName: null,
   rememberMe: false,
   notice: null,
+  registeredNotice: false,
 };
+
+/** Estado inicial tras un registro exitoso: correo rellenado y aviso visible (FR-011, FR-011a). */
+export function createInitialLoginState(registeredEmail?: string): LoginState {
+  if (registeredEmail === undefined) return initialLoginState;
+  return {
+    ...initialLoginState,
+    values: { email: registeredEmail, password: '' },
+    registeredNotice: true,
+  };
+}
 
 /** Errores visibles: solo los de campos ya tocados (FR-005). */
 function visibleErrors(values: LoginState['values'], touched: LoginState['touched']): FieldErrors {
@@ -53,6 +66,7 @@ export function loginReducer(state: LoginState, action: LoginAction): LoginState
         ...state,
         status: state.status === 'authError' ? 'editing' : state.status,
         authError: null,
+        registeredNotice: false,
         values,
         fieldErrors: visibleErrors(values, state.touched),
       };

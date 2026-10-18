@@ -57,6 +57,34 @@ describe('PasswordField', () => {
     expect(input).toHaveAccessibleDescription('Ingresa tu contraseña');
   });
 
+  it('FR-013: con toggleSubject el control nombra el campo (confirmación)', async () => {
+    renderField({ toggleSubject: 'confirmación de contraseña' });
+    const toggle = screen.getByRole('button', { name: 'Mostrar confirmación de contraseña' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    await userEvent.click(toggle);
+    expect(
+      screen.getByRole('button', { name: 'Ocultar confirmación de contraseña' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('FR-013: dos campos en la misma pantalla tienen controles de nombre distinto', () => {
+    render(
+      <>
+        <PasswordField label="Contraseña" value="" onChange={() => {}} />
+        <PasswordField
+          label="Confirmar contraseña"
+          toggleSubject="confirmación de contraseña"
+          value=""
+          onChange={() => {}}
+        />
+      </>,
+    );
+    expect(screen.getByRole('button', { name: 'Mostrar contraseña' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Mostrar confirmación de contraseña' }),
+    ).toBeInTheDocument();
+  });
+
   it('FR-015: no tiene violaciones de accesibilidad', async () => {
     render(<PasswordField label="Contraseña" value="" onChange={() => {}} />);
     await expectNoA11yViolations(document.body);
