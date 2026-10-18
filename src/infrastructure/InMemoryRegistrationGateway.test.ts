@@ -49,10 +49,19 @@ describe('InMemoryRegistrationGateway (contracts/registration-gateway.md)', () =
     ).resolves.toEqual({ kind: 'invalid-credentials' });
   });
 
-  it('R4: almacén no disponible → unavailable', async () => {
-    await expect(setup(null).registration.register(NEW_ACCOUNT)).resolves.toEqual({
-      kind: 'unavailable',
-    });
+  it('R4: sin configuración de cuentas de demostración el registro funciona y habilita el login', async () => {
+    const { registration, auth } = setup(null);
+    await expect(
+      auth.authenticate({ email: NEW_ACCOUNT.email, password: NEW_ACCOUNT.password }),
+    ).resolves.toEqual({ kind: 'unavailable' });
+
+    await expect(registration.register(NEW_ACCOUNT)).resolves.toEqual({ kind: 'success' });
+    await expect(
+      auth.authenticate({ email: NEW_ACCOUNT.email, password: NEW_ACCOUNT.password }),
+    ).resolves.toEqual({ kind: 'success', displayName: 'Diego Martínez' });
+    await expect(
+      auth.authenticate({ email: 'otra@example.test', password: NEW_ACCOUNT.password }),
+    ).resolves.toEqual({ kind: 'invalid-credentials' });
   });
 
   it('R5: una excepción interna → unavailable sin rechazar la promesa', async () => {

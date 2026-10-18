@@ -38,6 +38,13 @@ describe('TermsDialog (FR-021)', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('US3-5: el evento cancel por sí solo ya avisa con onClose (no depende del evento close)', () => {
+    const onClose = vi.fn();
+    render(<TermsDialog open onClose={onClose} />);
+    fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it('FR-019: no tiene violaciones de accesibilidad', async () => {
     const { container } = render(<TermsDialog open onClose={() => {}} />);
     await expectNoA11yViolations(container);

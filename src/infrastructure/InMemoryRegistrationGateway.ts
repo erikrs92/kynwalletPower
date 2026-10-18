@@ -19,7 +19,7 @@ export class InMemoryRegistrationGateway implements RegistrationGateway {
   async register(account: NewAccount): Promise<RegisterResult> {
     await wait(this.delayMs);
     try {
-      if (!this.store.isAvailable()) return { kind: 'unavailable' };
+      // El registro no depende de la configuración de cuentas de demostración (contrato R4).
       // La comprobación de duplicado y el alta son una sola operación síncrona (R7).
       return this.store.add(account) === 'added' ? { kind: 'success' } : { kind: 'email-taken' };
     } catch {

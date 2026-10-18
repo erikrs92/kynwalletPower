@@ -2,9 +2,17 @@ import { TEST_ACCOUNT } from '@/test/fixtures';
 import { InMemoryAccountStore } from './InMemoryAccountStore';
 
 describe('InMemoryAccountStore (contracts/registration-gateway.md)', () => {
-  it('isAvailable: false con null y true con una lista', () => {
+  it('isAvailable: false con null y sin cuentas, true con una lista o tras registrar una cuenta', () => {
     expect(new InMemoryAccountStore(null).isAvailable()).toBe(false);
     expect(new InMemoryAccountStore([TEST_ACCOUNT]).isAvailable()).toBe(true);
+
+    const withoutConfig = new InMemoryAccountStore(null);
+    withoutConfig.add({
+      email: 'nueva@example.test',
+      password: 'fixture-pass-02',
+      displayName: 'N',
+    });
+    expect(withoutConfig.isAvailable()).toBe(true);
   });
 
   it('findByEmail compara el correo normalizado', () => {

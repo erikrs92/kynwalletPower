@@ -22,8 +22,21 @@ export function TermsDialog({ open, onClose }: TermsDialogProps) {
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
+  // El estado se sincroniza al pedir el cierre; no se depende solo del evento "close", que el
+  // navegador dispara de forma asíncrona.
+  const handleCloseClick = () => {
+    dialogRef.current?.close();
+    onClose();
+  };
+
   return (
-    <dialog ref={dialogRef} className={styles.dialog} aria-labelledby={titleId} onClose={onClose}>
+    <dialog
+      ref={dialogRef}
+      className={styles.dialog}
+      aria-labelledby={titleId}
+      onCancel={onClose}
+      onClose={onClose}
+    >
       <h2 id={titleId} className={styles.title}>
         Términos y condiciones
       </h2>
@@ -37,7 +50,7 @@ export function TermsDialog({ open, onClose }: TermsDialogProps) {
           memoria de esta página y se pierden al recargarla.
         </p>
       </div>
-      <Button variant="secondary" onClick={() => dialogRef.current?.close()}>
+      <Button variant="secondary" onClick={handleCloseClick}>
         Cerrar
       </Button>
     </dialog>

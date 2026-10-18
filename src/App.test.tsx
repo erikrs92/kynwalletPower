@@ -204,3 +204,117 @@ describe('App · registro de extremo a extremo (spec 002, US1)', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Correo o contraseña incorrectos');
   });
 });
+
+describe('App · accesibilidad del registro (FR-019, SC-005)', () => {
+  const openRegister = () => window.history.pushState({}, '', '/registro');
+
+  it('vista de registro vacía sin violaciones', async () => {
+    openRegister();
+    const { container } = renderWithStubs();
+    await expectNoA11yViolations(container);
+  });
+
+  it('registro con todos los errores visibles sin violaciones', async () => {
+    openRegister();
+    const { container } = renderWithStubs();
+    await userEvent.click(screen.getByRole('button', { name: 'Crear cuenta' }));
+    await expectNoA11yViolations(container);
+  });
+
+  it('registro con "Este correo ya está registrado" sin violaciones', async () => {
+    openRegister();
+    const user = userEvent.setup();
+    const { container } = renderIntegrated();
+    await user.type(screen.getByLabelText('Nombre completo'), NEW_ACCOUNT_DATA.fullName);
+    await user.type(screen.getByLabelText('Correo electrónico'), TEST_ACCOUNT.email);
+    await user.type(screen.getByLabelText('Contraseña'), NEW_ACCOUNT_DATA.password);
+    await user.type(
+      screen.getByLabelText('Confirmar contraseña'),
+      NEW_ACCOUNT_DATA.confirmPassword,
+    );
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Crear cuenta' }));
+    await vi.waitFor(() =>
+      expect(screen.getByLabelText('Correo electrónico')).toHaveAccessibleDescription(
+        'Este correo ya está registrado',
+      ),
+    );
+    await expectNoA11yViolations(container);
+  });
+
+  it('registro con el aviso "Próximamente" sin violaciones', async () => {
+    openRegister();
+    const { container } = renderWithStubs();
+    await userEvent.click(screen.getByRole('button', { name: 'Google' }));
+    await expectNoA11yViolations(container);
+  });
+
+  it('registro con el diálogo de términos abierto sin violaciones', async () => {
+    openRegister();
+    const { container } = renderWithStubs();
+    await userEvent.click(screen.getByRole('button', { name: 'términos y condiciones' }));
+    expect(screen.getByRole('dialog', { name: 'Términos y condiciones' })).toBeInTheDocument();
+    await expectNoA11yViolations(container);
+  });
+
+  it('login con el aviso de registro exitoso sin violaciones', async () => {
+    openRegister();
+    const user = userEvent.setup();
+    const { container } = renderIntegrated();
+    await registerNewAccount(user);
+    await screen.findByRole('status');
+    await expectNoA11yViolations(container);
+  });
+});
+
+describe('App · seguridad del registro (FR-012, N8, R6)', () => {
+  async function runFlow(email: string) {
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    const consoleSpies = (['log', 'info', 'warn', 'error', 'debug'] as const).map((method) =>
+      vi.spyOn(console, method),
+    );
+    window.history.pushState({}, '', '/registro');
+    const user = userEvent.setup();
+    renderIntegrated();
+    await user.type(screen.getByLabelText('Nombre completo'), NEW_ACCOUNT_DATA.fullName);
+    await user.type(screen.getByLabelText('Correo electrónico'), email);
+    await user.type(screen.getByLabelText('Contraseña'), NEW_ACCOUNT_DATA.password);
+    await user.type(
+      screen.getByLabelText('Confirmar contraseña'),
+      NEW_ACCOUNT_DATA.confirmPassword,
+    );
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: 'Crear cuenta' }));
+    await vi.waitFor(() => {
+      const failed = screen.queryByLabelText('Correo electrónico')?.hasAttribute('aria-invalid');
+      const onLogin = window.location.pathname === '/login';
+      expect(failed || onLogin).toBe(true);
+    });
+
+    const serialized = [
+      document.body.textContent ?? '',
+      window.location.href,
+      JSON.stringify(window.history.state),
+      ...setItem.mock.calls.flat(),
+      ...consoleSpies.flatMap((spy) => spy.mock.calls.flat().map(String)),
+    ].join('\n');
+    const stored = setItem.mock.calls.length;
+    setItem.mockRestore();
+    consoleSpies.forEach((spy) => spy.mockRestore());
+    return { serialized, stored };
+  }
+
+  it('FR-012: tras un registro exitoso la contraseña no aparece en el DOM, la URL, el historial, la consola ni el almacenamiento', async () => {
+    const { serialized, stored } = await runFlow(NEW_ACCOUNT_DATA.email);
+    expect(serialized).not.toContain(NEW_ACCOUNT_DATA.password);
+    expect(stored).toBe(0);
+    expect(window.location.pathname).toBe('/login');
+  });
+
+  it('FR-012: tras un registro fallido (correo duplicado) la contraseña tampoco aparece', async () => {
+    const { serialized, stored } = await runFlow(TEST_ACCOUNT.email);
+    expect(serialized).not.toContain(NEW_ACCOUNT_DATA.password);
+    expect(stored).toBe(0);
+    expect(window.location.pathname).toBe('/registro');
+  });
+});

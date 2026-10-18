@@ -69,9 +69,18 @@ describe('useRoute y Link', () => {
     window.history.replaceState({}, '', '/login');
     render(<Probe />);
     const link = screen.getByRole('link', { name: 'Ir al registro' });
-    // fireEvent devuelve false si algún manejador llamó a preventDefault.
-    const notPrevented = fireEvent.click(link, init);
-    expect(notPrevented).toBe(true);
+    // Un oyente en document (posterior al de React) registra si el clic llegó sin cancelar y
+    // evita que jsdom intente la navegación real.
+    const seen: boolean[] = [];
+    const onDocumentClick = (event: Event) => {
+      seen.push(event.defaultPrevented);
+      event.preventDefault();
+    };
+    document.addEventListener('click', onDocumentClick);
+    fireEvent.click(link, init);
+    document.removeEventListener('click', onDocumentClick);
+
+    expect(seen).toEqual([false]);
     expect(screen.getByTestId('route')).toHaveTextContent('login');
     expect(window.location.pathname).toBe('/login');
   });
