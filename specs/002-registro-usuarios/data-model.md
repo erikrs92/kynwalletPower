@@ -118,7 +118,7 @@ estado de visibilidad de cada contraseña (FR-013) es local de `PasswordField`.
 
 | Operación | Resultado |
 |---|---|
-| `isAvailable()` | `false` si `VITE_DEMO_USERS` faltó o era inválida (research R2) |
+| `isAvailable()` | `false` si `VITE_DEMO_USERS` faltó o era inválida y aún no se registró ninguna cuenta (research R2) |
 | `findByEmail(email)` | Cuenta cuyo correo normalizado coincide, o `undefined` |
 | `add(account)` | `'added'` o `'duplicate'` (comprobación y alta atómicas, síncronas) |
 

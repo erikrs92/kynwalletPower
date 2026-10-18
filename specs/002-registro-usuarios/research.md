@@ -53,9 +53,12 @@ R7, R8, R9) y no se repiten aquí.
     (cuentas solo en memoria, se pierden al recargar). La persistencia real exigiría un backend
     y una spec propia; el puerto `RegistrationGateway` permite cambiar el adaptador después sin
     tocar la UI.
-- **Configuración ausente**: si `VITE_DEMO_USERS` falta o es inválida, el almacén queda
-  `unavailable` y tanto el login (comportamiento actual) como el registro responden
-  `unavailable`. Mantiene el contrato C4 del login y evita un estado intermedio no especificado.
+- **Configuración ausente** (revisado tras la implementación): si `VITE_DEMO_USERS` falta o es
+  inválida, el almacén arranca vacío. El registro **funciona igualmente** (crear una cuenta no
+  depende de las cuentas de demostración) y el login sigue respondiendo `unavailable` (contrato
+  C4) mientras no exista ninguna cuenta; tras registrar una, el login la reconoce y responde
+  `invalid-credentials` para cualquier otro correo. `unavailable` en el registro queda solo para
+  errores inesperados (R5).
 
 ## R3. Tratamiento de la contraseña en memoria
 
@@ -136,8 +139,8 @@ R7, R8, R9) y no se repiten aquí.
 |---|---|---|
 | `TextField` | Nombre completo, correo | Ninguno (ya admite `error`, `ref`, `placeholder`) |
 | `PasswordField` | Contraseña, confirmación | Prop opcional `toggleSubject` (por defecto `'contraseña'`) para que cada control de visibilidad tenga un nombre accesible distinto ("Mostrar confirmación de contraseña") |
-| `Checkbox` | Términos y condiciones | `label` pasa de `string` a `ReactNode` y se añade `error?: string` con `aria-invalid` y `aria-describedby` |
-| `Button` | "Crear cuenta", enlaces | Ninguno (variante `link` ya existe) |
+| `Checkbox` | Términos y condiciones | `label` pasa de `string` a `ReactNode`, se añade `error?: string` con `aria-invalid` y `aria-describedby`, y la prop `ref` para el foco al validar |
+| `Button` | "Crear cuenta", enlaces | Prop `ref` tipada (variante `link` ya existía) para devolver el foco al enlace "términos y condiciones" |
 | `SocialButton`, `Divider` | Google/Apple y "o regístrate con" | Ninguno |
 | `Alert` | Éxito, "Próximamente", no disponible | Nuevo tono `success` (`role="status"`) |
 | `TermsDialog` (nuevo, en `features/register`) | Texto de términos de ejemplo (FR-021) | Componente nuevo basado en el elemento nativo `<dialog>` |

@@ -41,7 +41,7 @@ export function createRegister(gateway: RegistrationGateway): Register;
 | R1 | Correo nuevo y datos válidos | `success`; la cuenta queda disponible para `AuthGateway.authenticate` (FR-023) |
 | R2 | Correo igual (sin distinguir mayúsculas ni espacios periféricos) a una cuenta de demostración | `email-taken`; no se crea cuenta |
 | R3 | Correo igual a una cuenta creada antes en la sesión | `email-taken`; no se crea cuenta |
-| R4 | Almacén no disponible (configuración ausente o inválida) | `unavailable` |
+| R4 | Configuración de cuentas de demostración ausente o inválida | `success`: el registro no depende de esa configuración. El almacén arranca vacío, el login (C4) responde `unavailable` hasta que exista una cuenta y después reconoce las registradas |
 | R5 | Cualquier excepción interna | `unavailable`; la promesa NO DEBE rechazarse |
 | R6 | Cualquier caso | NO DEBE registrar la contraseña ni incluirla en el resultado |
 | R7 | Dos llamadas concurrentes con el mismo correo | Exactamente una obtiene `success`; la otra `email-taken` |
@@ -56,7 +56,8 @@ new InMemoryAccountStore(accounts: DemoAccount[] | null)
   add(account: DemoAccount): 'added' | 'duplicate'      // comprobación y alta en una operación
 ```
 
-- `accounts === null` representa configuración inválida: `isAvailable()` es `false`.
+- `accounts === null` representa configuración inválida: el almacén arranca vacío e `isAvailable()`
+  es `false` hasta que se registre una cuenta.
 - Copia defensiva de la lista recibida; `findByEmail` no expone el arreglo interno.
 - No serializa ni persiste nada (FR-012).
 
@@ -67,7 +68,7 @@ new InMemoryRegistrationGateway(store: InMemoryAccountStore, options?: { delayMs
 ```
 
 - `delayMs` vale 1000 por defecto (FR-010); las pruebas usan 0 o temporizadores falsos.
-- Espera, comprueba `isAvailable()`, y llama a `store.add`; `duplicate` → `email-taken`.
+- Espera y llama a `store.add`; `duplicate` → `email-taken`. No consulta `isAvailable()` (R4).
 - R7 se cumple porque `add` es síncrono: la comprobación de duplicado y el alta no se separan.
 
 ## Cambio en `InMemoryAuthGateway` (login)

@@ -6,8 +6,10 @@ misma del login: ver [`001-login-billetera/quickstart.md`](../001-login-billeter
 ## Prerrequisitos
 
 - Node.js 20 LTS o superior y npm 10 o superior.
-- Al menos una cuenta ficticia en `.env.local` (`VITE_DEMO_USERS`), igual que en el login. Sin
-  esa configuración el login y el registro responden "servicio no disponible".
+- Una cuenta ficticia en `.env.local` (`VITE_DEMO_USERS`), igual que en el login, para los
+  escenarios que usan `<correo>` y `<contraseña>`. El registro funciona aunque falte esa
+  configuración; sin ella, el login solo responde "servicio no disponible" mientras no exista
+  ninguna cuenta.
 
 ## Ejecutar
 
