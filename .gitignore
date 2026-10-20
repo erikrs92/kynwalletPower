@@ -23,6 +23,7 @@ Thumbs.db
 .gemini/
 GEMINI.md
 .claude/
+.github/
 CLAUDE.md
 .copilot/
 .cursor/
